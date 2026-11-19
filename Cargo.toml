@@ -1,0 +1,45 @@
+[package]
+name = "rustls-yubikey"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/carl-wallace/rustls-yubikey"
+description = "HTTPS GET with TLS client authentication by an ML-DSA key on the PQC Ready YubiKey beta"
+
+[dependencies]
+# ML-DSA and ML-KEM support for the PQC Ready YubiKey beta: the pqc-upstream branch of this fork,
+# which is not yet upstream.
+yubikey = { git = "https://github.com/carl-wallace/yubikey.rs.git", rev = "708321a80b7d14c2f114b6b201cdbb2d34309229" }
+rustls = { version = "=0.23.46", default-features = false, features = ["ring", "std", "logging"] }
+
+# For tests/enrollment.rs, the simulated derived PIV credential enrollment that
+# scripts/run-pqc-flow.sh drives.
+[dev-dependencies]
+cipher = { version = "0.5", features = ["getrandom", "rand_core"] }
+env_logger = "0.11"
+log = "0.4"
+once_cell = "1"
+rand = "0.10"
+rsa = { version = "0.10", features = ["pkcs1v15"] }
+sha1 = "0.11"
+sha2 = { version = "0.11", features = ["oid"] }
+signature = "3.0.0-rc.10"
+x509-cert = { version = "0.3.0-rc.4", features = ["builder", "hazmat"] }
+# Software counterparts: a stand-in CA that signs, and encapsulation against keys the YubiKey
+# generated.
+ml-dsa = "0.1.1"
+ml-kem = { version = "0.3.2", features = ["pkcs8"] }
+# Packs and unpacks the PKCS #12 the recovered-key steps deliver, as an issuer does.
+# Submitted for consideration in the pkcs12 crate: https://github.com/RustCrypto/formats/pull/2299
+# (head 20548ee3e23f1318968039f2cacadfbd67bace59 as of 2026-11-19).
+pkcs12_builder = { git = "https://github.com/carl-wallace/pkcs12_builder.git", rev = "fee87548124d7473e0cf4c8a7184cb8049943c1c" }
+
+[workspace]
+
+# pkcs12_builder depends on cms ^0.3.0-pre.2 while the published pkcs12 pins cms =0.3.0-pre.1,
+# so the two cannot be resolved from crates.io alone. Taking both from the formats repository
+# resolves the conflict. Pinned: later formats commits need an unpublished x509-cert.
+[patch.crates-io]
+cms    = { git = "https://github.com/RustCrypto/formats.git", rev = "2fb80dd7144c6edd2ef780a642de44ab32eadd94" }
+pkcs12 = { git = "https://github.com/RustCrypto/formats.git", rev = "2fb80dd7144c6edd2ef780a642de44ab32eadd94" }

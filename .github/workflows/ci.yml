@@ -1,0 +1,81 @@
+name: rustls-yubikey
+
+on:
+  pull_request:
+  push:
+    branches: main
+  # Manual re-runs via `gh workflow run ci.yml` (available once this file is
+  # on the default branch).
+  workflow_dispatch:
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-Dwarnings"
+
+# Cancels CI jobs when new commits are pushed to a PR branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+# --locked everywhere: Cargo.lock is checked in, and a run that re-resolved it would test
+# dependencies the repository does not pin. No job reaches a YubiKey: the runners have none, so CI
+# covers the build, and the client and the simulated enrollment are run against a card by hand.
+# There is no test job for the same reason: every test needs a card and is #[ignore]d, so
+# `cargo test` would only repeat the build.
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # The yubikey crate talks to the card through PC/SC, which is the system's on macOS and
+        # Windows and pcsc-lite on Linux.
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libpcsclite-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --locked --all-targets
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y libpcsclite-dev
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # Not installed by default.
+          components: clippy
+      - run: cargo clippy --locked --all-targets
+
+  # A job of its own so it can be a required check without making clippy one: each Rust release
+  # adds lints, and a required clippy would fail unrelated pull requests.
+  rustfmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # Not installed by default.
+          components: rustfmt
+      - run: cargo fmt --check
+
+  doc:
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: "-D warnings"
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y libpcsclite-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo doc --locked --no-deps
+
+  # shellcheck is preinstalled on the Ubuntu runners.
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: shellcheck scripts/*.sh
