@@ -1,4 +1,4 @@
-name: rustls-yubikey
+name: rustls-yubikey-demo
 
 on:
   pull_request:
