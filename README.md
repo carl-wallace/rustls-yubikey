@@ -1,4 +1,4 @@
-# rustls-yubikey
+# rustls-yubikey-demo
 
 TLS 1.3 client authentication with a post-quantum key on a YubiKey. The program makes an HTTPS GET
 with [rustls](https://github.com/rustls/rustls). The rustls client-authentication signature is made

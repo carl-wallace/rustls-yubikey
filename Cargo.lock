@@ -1105,7 +1105,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustls-yubikey"
+name = "rustls-yubikey-demo"
 version = "0.0.0"
 dependencies = [
  "cipher",

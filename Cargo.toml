@@ -1,10 +1,10 @@
 [package]
-name = "rustls-yubikey"
+name = "rustls-yubikey-demo"
 version = "0.0.0"
 edition = "2021"
 publish = false
 license = "Apache-2.0 OR MIT"
-repository = "https://github.com/carl-wallace/rustls-yubikey"
+repository = "https://github.com/carl-wallace/rustls-yubikey-demo"
 description = "HTTPS GET with TLS client authentication by an ML-DSA key on the PQC Ready YubiKey beta"
 
 [dependencies]

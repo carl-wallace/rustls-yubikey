@@ -1,7 +1,7 @@
 //! HTTPS GET with TLS 1.3 client authentication, signing the handshake with the ML-DSA-65 key in
 //! the PQC Ready YubiKey beta's PIV authentication slot (9A).
 //!
-//! Usage: `rustls-yubikey <host> <port> <path> <client-cert.der> <server-root.pem> [pin]`
+//! Usage: `rustls-yubikey-demo <host> <port> <path> <client-cert.der> <server-root.pem> [pin]`
 //!
 //! The client certificate is read from a file rather than from the card, whose copy is too large
 //! for some tools to read back. The server is verified against the root in `server-root.pem`. The
